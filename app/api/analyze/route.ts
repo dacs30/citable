@@ -1,9 +1,29 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase-server'
 import { runAnalysis } from '@/lib/analyze'
+import { validateUrlForScraping } from '@/lib/url-validator'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 export async function POST(request: Request) {
   try {
+    // Rate limiting
+    const ip =
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+      request.headers.get('x-real-ip') ??
+      'unknown'
+    const rateLimitResult = checkRateLimit(ip)
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(rateLimitResult.retryAfterSeconds),
+          },
+        }
+      )
+    }
+
     const body = await request.json()
     const { url, scraper_type, firecrawl_api_key } = body as {
       url?: string
@@ -16,17 +36,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'URL is required' }, { status: 400 })
     }
 
-    const trimmed = url.trim()
-    let normalizedUrl = trimmed
-    if (!/^https?:\/\//i.test(normalizedUrl)) {
-      normalizedUrl = `https://${normalizedUrl}`
+    // SSRF-safe URL validation (blocks private IPs, cloud metadata, etc.)
+    const urlValidation = await validateUrlForScraping(url)
+    if (!urlValidation.valid) {
+      return NextResponse.json(
+        { error: urlValidation.error },
+        { status: 400 }
+      )
     }
-
-    try {
-      new URL(normalizedUrl)
-    } catch {
-      return NextResponse.json({ error: 'Invalid URL' }, { status: 400 })
-    }
+    const normalizedUrl = urlValidation.normalizedUrl!
 
     // Validate scraper type
     const scraperType = scraper_type === 'firecrawl' ? 'firecrawl' : 'playwright'
@@ -61,9 +79,11 @@ export async function POST(request: Request) {
       )
     }
 
-    // Fire-and-forget background analysis
+    // Fire-and-forget background analysis (avoid logging to prevent API key leakage)
     runAnalysis(data.id, normalizedUrl, scraperType, firecrawl_api_key).catch(
-      console.error
+      (err) => {
+        console.error(`Analysis ${data.id} failed:`, err instanceof Error ? err.message : 'Unknown error')
+      }
     )
 
     return NextResponse.json({ id: data.id })
