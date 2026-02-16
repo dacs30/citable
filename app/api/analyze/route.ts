@@ -83,12 +83,28 @@ export async function POST(request: Request) {
     }
 
     // Run analysis in the background using after() — Vercel keeps the
-    // function alive after the response is sent (requires Pro plan)
+    // function alive after the response is sent (requires Pro plan).
+    // A 55s timeout guard ensures the analysis is marked as failed before
+    // Vercel kills the function at 60s, preventing stuck "processing" records.
     after(async () => {
+      const TIMEOUT_MS = 55_000
+      const supabaseForTimeout = createServerClient()
+
       try {
-        await runAnalysis(data.id, normalizedUrl, scraperType, firecrawl_api_key)
+        const timeout = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Analysis timed out after 55 seconds')), TIMEOUT_MS)
+        )
+        await Promise.race([
+          runAnalysis(data.id, normalizedUrl, scraperType, firecrawl_api_key),
+          timeout,
+        ])
       } catch (err) {
-        console.error(`Analysis ${data.id} failed:`, err instanceof Error ? err.message : 'Unknown error')
+        const message = err instanceof Error ? err.message : 'Unknown error'
+        console.error(`Analysis ${data.id} failed:`, message)
+        await supabaseForTimeout
+          .from('analyses')
+          .update({ status: 'failed', error_message: message })
+          .eq('id', data.id)
       }
     })
 
