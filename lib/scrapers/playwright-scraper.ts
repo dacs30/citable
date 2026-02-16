@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { Browser } from 'puppeteer-core'
+import type { Browser, Page } from 'puppeteer-core'
 
 export interface ScrapeResult {
   html: string
@@ -37,30 +37,44 @@ async function getChromiumPath(): Promise<string> {
   return downloadPromise
 }
 
-export async function scrapeWithPlaywright(url: string): Promise<ScrapeResult> {
-  let browser: Browser | undefined
+async function launchBrowser(): Promise<Browser> {
+  const isVercel = !!process.env.VERCEL_ENV
+
+  let puppeteer: any
+  let launchOptions: any = { headless: true }
+
+  if (isVercel) {
+    const chromium = (await import('@sparticuz/chromium-min')).default
+    puppeteer = await import('puppeteer-core')
+    const executablePath = await getChromiumPath()
+    launchOptions = { ...launchOptions, args: chromium.args, executablePath }
+  } else {
+    puppeteer = await import('puppeteer')
+  }
+
+  return puppeteer.launch(launchOptions) as Promise<Browser>
+}
+
+async function scrapePage(browser: Browser, url: string): Promise<ScrapeResult> {
+  const page: Page = await browser.newPage()
   try {
-    const isVercel = !!process.env.VERCEL_ENV
-
-    let puppeteer: any
-    let launchOptions: any = { headless: true }
-
-    if (isVercel) {
-      const chromium = (await import('@sparticuz/chromium-min')).default
-      puppeteer = await import('puppeteer-core')
-      const executablePath = await getChromiumPath()
-      launchOptions = { ...launchOptions, args: chromium.args, executablePath }
-    } else {
-      // Locally, use full puppeteer which bundles its own Chromium
-      puppeteer = await import('puppeteer')
-    }
-
-    browser = (await puppeteer.launch(launchOptions)) as Browser
-    const page = await browser.newPage()
     await page.setUserAgent(
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
     )
-    await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 })
+
+    // Block images, fonts, CSS, and media — we only need HTML for scoring
+    await page.setRequestInterception(true)
+    page.on('request', (req) => {
+      if (['image', 'stylesheet', 'font', 'media'].includes(req.resourceType())) {
+        req.abort()
+      } else {
+        req.continue()
+      }
+    })
+
+    // domcontentloaded fires as soon as the DOM is ready — much faster than
+    // networkidle2 which waits for all network activity to settle
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 })
     const html = await page.content()
     const title = await page.title()
     return { html, title, url }
@@ -68,8 +82,49 @@ export async function scrapeWithPlaywright(url: string): Promise<ScrapeResult> {
     const message = err instanceof Error ? err.message : String(err)
     return { html: '', title: '', url, error: message }
   } finally {
-    if (browser) {
-      await browser.close()
+    await page.close()
+  }
+}
+
+async function scrapePages(
+  browser: Browser,
+  urls: string[],
+  batchSize = 3
+): Promise<ScrapeResult[]> {
+  const results: ScrapeResult[] = []
+  for (let i = 0; i < urls.length; i += batchSize) {
+    const batch = urls.slice(i, i + batchSize)
+    const settled = await Promise.allSettled(batch.map((u) => scrapePage(browser, u)))
+    for (const result of settled) {
+      if (result.status === 'fulfilled') results.push(result.value)
     }
+  }
+  return results
+}
+
+export interface BrowserSession {
+  scrape: (url: string) => Promise<ScrapeResult>
+  scrapeAll: (urls: string[], batchSize?: number) => Promise<ScrapeResult[]>
+  close: () => Promise<void>
+}
+
+// Creates a single browser instance shared across multiple scrape calls.
+// Caller is responsible for calling close() when done.
+export async function createBrowserSession(): Promise<BrowserSession> {
+  const browser = await launchBrowser()
+  return {
+    scrape: (url) => scrapePage(browser, url),
+    scrapeAll: (urls, batchSize = 3) => scrapePages(browser, urls, batchSize),
+    close: () => browser.close(),
+  }
+}
+
+// Convenience wrapper for single-URL scraping
+export async function scrapeWithPlaywright(url: string): Promise<ScrapeResult> {
+  const browser = await launchBrowser()
+  try {
+    return await scrapePage(browser, url)
+  } finally {
+    await browser.close()
   }
 }

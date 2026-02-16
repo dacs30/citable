@@ -1,37 +1,21 @@
 import { createServerClient } from '@/lib/supabase-server'
-import { scrapeWithPlaywright } from '@/lib/scrapers/playwright-scraper'
+import { createBrowserSession } from '@/lib/scrapers/playwright-scraper'
 import { scrapeWithFirecrawl } from '@/lib/scrapers/firecrawl-scraper'
 import { discoverSublinks } from '@/lib/link-explorer'
 import { scorePageContent } from '@/lib/geo-scorer'
 import type { ScrapeResult } from '@/lib/scrapers/playwright-scraper'
 
-async function scrape(
-  url: string,
-  scraperType: 'playwright' | 'firecrawl',
-  firecrawlApiKey?: string
-): Promise<ScrapeResult> {
-  if (scraperType === 'firecrawl') {
-    return scrapeWithFirecrawl(url, firecrawlApiKey!)
-  }
-  return scrapeWithPlaywright(url)
-}
-
-async function scrapeBatch(
+async function firecrawlBatch(
   urls: string[],
-  scraperType: 'playwright' | 'firecrawl',
-  firecrawlApiKey?: string,
+  apiKey: string,
   batchSize = 3
 ): Promise<ScrapeResult[]> {
   const results: ScrapeResult[] = []
   for (let i = 0; i < urls.length; i += batchSize) {
     const batch = urls.slice(i, i + batchSize)
-    const settled = await Promise.allSettled(
-      batch.map((u) => scrape(u, scraperType, firecrawlApiKey))
-    )
+    const settled = await Promise.allSettled(batch.map((u) => scrapeWithFirecrawl(u, apiKey)))
     for (const result of settled) {
-      if (result.status === 'fulfilled') {
-        results.push(result.value)
-      }
+      if (result.status === 'fulfilled') results.push(result.value)
     }
   }
   return results
@@ -52,29 +36,55 @@ export async function runAnalysis(
       .update({ status: 'processing' })
       .eq('id', analysisId)
 
-    // 2. Scrape homepage
-    const homepage = await scrape(url, scraperType, firecrawlApiKey)
-    if (homepage.error || !homepage.html) {
-      await supabase
-        .from('analyses')
-        .update({
-          status: 'failed',
-          error_message: homepage.error || 'Failed to scrape homepage',
-        })
-        .eq('id', analysisId)
-      return
+    let allScraped: ScrapeResult[]
+
+    if (scraperType === 'playwright') {
+      // One browser instance for homepage + all sublinks — avoids N+1 browser launches
+      const session = await createBrowserSession()
+      try {
+        // 2. Scrape homepage
+        const homepage = await session.scrape(url)
+        if (homepage.error || !homepage.html) {
+          await supabase
+            .from('analyses')
+            .update({
+              status: 'failed',
+              error_message: homepage.error || 'Failed to scrape homepage',
+            })
+            .eq('id', analysisId)
+          return
+        }
+
+        // 3. Discover sublinks, scrape them with the same browser
+        const allLinks = await discoverSublinks(url, homepage.html)
+        const sublinks = allLinks.filter((u) => u !== url && u !== homepage.url)
+        const subScraped = await session.scrapeAll(sublinks)
+        allScraped = [homepage, ...subScraped]
+      } finally {
+        await session.close()
+      }
+    } else {
+      // 2. Scrape homepage via Firecrawl
+      const homepage = await scrapeWithFirecrawl(url, firecrawlApiKey!)
+      if (homepage.error || !homepage.html) {
+        await supabase
+          .from('analyses')
+          .update({
+            status: 'failed',
+            error_message: homepage.error || 'Failed to scrape homepage',
+          })
+          .eq('id', analysisId)
+        return
+      }
+
+      // 3. Discover sublinks and scrape in batches
+      const allLinks = await discoverSublinks(url, homepage.html)
+      const sublinks = allLinks.filter((u) => u !== url && u !== homepage.url)
+      const subScraped = await firecrawlBatch(sublinks, firecrawlApiKey!)
+      allScraped = [homepage, ...subScraped]
     }
 
-    // 3. Discover sublinks (returns [baseUrl, ...up to 9 sublinks])
-    const allLinks = await discoverSublinks(url, homepage.html)
-    // Skip re-scraping the homepage — we already have it
-    const sublinks = allLinks.filter((u) => u !== url && u !== homepage.url)
-
-    // 4. Scrape sublinks; prepend the already-scraped homepage result
-    const subScraped = await scrapeBatch(sublinks, scraperType, firecrawlApiKey, 3)
-    const allScraped = [homepage, ...subScraped]
-
-    // 5. Score each successfully scraped page
+    // 4. Score each successfully scraped page
     const pageRows: {
       analysis_id: string
       url: string
@@ -95,18 +105,18 @@ export async function runAnalysis(
       })
     }
 
-    // 6. Insert page scores
+    // 5. Insert page scores
     if (pageRows.length > 0) {
       await supabase.from('page_scores').insert(pageRows)
     }
 
-    // 7. Calculate overall score
+    // 6. Calculate overall score
     const overallScore =
       pageRows.length > 0
         ? Math.round(pageRows.reduce((sum, p) => sum + p.score, 0) / pageRows.length)
         : 0
 
-    // 8. Mark completed
+    // 7. Mark completed
     await supabase
       .from('analyses')
       .update({ status: 'completed', overall_score: overallScore })
