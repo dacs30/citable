@@ -24,7 +24,7 @@ export function AppBackground() {
         patternScale={2.5}
         patternDensity={0.9}
         speed={0.3}
-        edgeFade={0.7}
+        edgeFade={0.6}
         pixelSizeJitter={0.4}
         enableRipples={false}
         transparent={true}
