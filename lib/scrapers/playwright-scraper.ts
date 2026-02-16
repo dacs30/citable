@@ -1,4 +1,4 @@
-import chromium from '@sparticuz/chromium'
+import chromium from '@sparticuz/chromium-min'
 import puppeteer from 'puppeteer-core'
 
 export interface ScrapeResult {
@@ -7,6 +7,10 @@ export interface ScrapeResult {
   url: string
   error?: string
 }
+
+// Must match the installed @sparticuz/chromium-min version
+const CHROMIUM_REMOTE_URL =
+  'https://github.com/nichochar/chromium/releases/download/v143.0.0/chromium-v143.0.0-pack.tar'
 
 const LOCAL_CHROME_PATHS = [
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
@@ -17,9 +21,9 @@ const LOCAL_CHROME_PATHS = [
 ]
 
 async function getExecutablePath(): Promise<string> {
-  // In production (Vercel/Lambda), use @sparticuz/chromium
+  // In production (Vercel/Lambda), download chromium from remote URL
   if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
-    return await chromium.executablePath()
+    return await chromium.executablePath(CHROMIUM_REMOTE_URL)
   }
 
   // Locally, use an installed Chrome browser
@@ -28,8 +32,8 @@ async function getExecutablePath(): Promise<string> {
     if (fs.existsSync(p)) return p
   }
 
-  // Fallback: try @sparticuz/chromium anyway
-  return await chromium.executablePath()
+  // Fallback: try remote download anyway
+  return await chromium.executablePath(CHROMIUM_REMOTE_URL)
 }
 
 export async function scrapeWithPlaywright(url: string): Promise<ScrapeResult> {
