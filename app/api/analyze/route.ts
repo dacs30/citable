@@ -1,8 +1,11 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, after } from 'next/server'
 import { createServerClient } from '@/lib/supabase-server'
 import { runAnalysis } from '@/lib/analyze'
 import { validateUrlForScraping } from '@/lib/url-validator'
 import { checkRateLimit } from '@/lib/rate-limit'
+
+// Vercel Pro: allow up to 60s for background analysis to complete
+export const maxDuration = 60
 
 export async function POST(request: Request) {
   try {
@@ -79,12 +82,15 @@ export async function POST(request: Request) {
       )
     }
 
-    // Fire-and-forget background analysis (avoid logging to prevent API key leakage)
-    runAnalysis(data.id, normalizedUrl, scraperType, firecrawl_api_key).catch(
-      (err) => {
+    // Run analysis in the background using after() — Vercel keeps the
+    // function alive after the response is sent (requires Pro plan)
+    after(async () => {
+      try {
+        await runAnalysis(data.id, normalizedUrl, scraperType, firecrawl_api_key)
+      } catch (err) {
         console.error(`Analysis ${data.id} failed:`, err instanceof Error ? err.message : 'Unknown error')
       }
-    )
+    })
 
     return NextResponse.json({ id: data.id })
   } catch {
