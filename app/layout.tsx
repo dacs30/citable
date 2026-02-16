@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { AppBackground } from "@/components/AppBackground";
+import { Navbar } from "@/components/Navbar";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -31,6 +32,8 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AppBackground />
+        {/* Navbar sits above the content stacking context so nothing can paint over it */}
+        <Navbar />
         {/* Content layer sits above the fixed background */}
         <div style={{ position: "relative", zIndex: 1 }}>
           {children}

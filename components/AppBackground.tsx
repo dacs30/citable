@@ -20,10 +20,10 @@ export function AppBackground() {
       <PixelBlast
         variant="circle"
         color="#6366f1"
-        pixelSize={3}
+        pixelSize={5}
         patternScale={2.5}
-        patternDensity={0.9}
-        speed={0.3}
+        patternDensity={1}
+        speed={0.4}
         edgeFade={0.6}
         pixelSizeJitter={0.4}
         enableRipples={false}

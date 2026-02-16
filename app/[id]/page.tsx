@@ -30,14 +30,7 @@ export default async function ResultsPage({
     typedAnalysis.status === "pending" ||
     typedAnalysis.status === "processing"
   ) {
-    return (
-      <div className="flex min-h-screen flex-col">
-        <nav className="flex items-center sticky top-0 z-10 border-b border-border/40 bg-background/60 px-6 py-4 backdrop-blur-md">
-          <span className="text-lg font-bold tracking-tight">GEO Score</span>
-        </nav>
-        <PollingResults id={id} initialData={typedAnalysis} />
-      </div>
-    )
+    return <PollingResults id={id} initialData={typedAnalysis} />
   }
 
   // Fetch past analyses for the same domain (for history chart)

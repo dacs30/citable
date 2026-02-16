@@ -1,7 +1,7 @@
 import Link from "next/link"
 import type { Metadata } from "next"
-import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { ScoreGauge } from "@/components/ScoreGauge"
 import {
@@ -15,7 +15,6 @@ import {
   Image,
   Bot,
   Lightbulb,
-  ArrowLeft,
 } from "lucide-react"
 
 export const metadata: Metadata = {
@@ -175,20 +174,6 @@ const gradeTiers = [
 export default function ScoringPage() {
   return (
     <div className="flex min-h-screen flex-col">
-      {/* Nav */}
-      <nav className="flex items-center justify-between sticky top-0 z-10 border-b border-border/40 bg-background/60 px-6 py-4 backdrop-blur-md">
-        <Link href="/" className="text-lg font-bold tracking-tight hover:opacity-80 transition-opacity">
-          GEO Score
-        </Link>
-        <Link
-          href="/"
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="size-3.5" />
-          Back to analyzer
-        </Link>
-      </nav>
-
       <main className="mx-auto w-full max-w-4xl px-6 py-16">
         {/* Header */}
         <div className="mb-12 flex flex-col gap-3">

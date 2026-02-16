@@ -1,33 +1,15 @@
-import Link from "next/link"
-import { Badge } from "@/components/ui/badge"
 import { UrlForm } from "@/components/UrlForm"
 import { Globe, Search, BarChart3 } from "lucide-react"
 
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
-      {/* Nav */}
-      <nav className="flex items-center justify-between sticky top-0 z-10 border-b border-border/40 bg-background/60 px-6 py-4 backdrop-blur-md">
-        <span className="text-lg font-bold tracking-tight">GEO Score</span>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/scoring"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            How it&apos;s scored
-          </Link>
-          <Badge variant="outline" asChild>
-            <a href="#how-it-works">What is GEO?</a>
-          </Badge>
-        </div>
-      </nav>
-
       {/* Hero */}
       <section className="relative flex flex-1 flex-col items-center justify-center px-6 py-20">
         {/* Subtle gradient background */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(99,102,241,0.08)_0%,_transparent_70%)]" />
 
-        <div className="relative z-10 flex max-w-2xl flex-col items-center gap-6 text-center">
+        <div className="relative flex max-w-2xl flex-col items-center gap-6 text-center">
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             Is your site AI-search ready?
           </h1>
