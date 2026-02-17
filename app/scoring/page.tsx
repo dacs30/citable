@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { ScoreGauge } from "@/components/ScoreGauge"
+import { Footer } from "@/components/Footer"
 import {
   Code2,
   FileText,
@@ -292,9 +293,7 @@ export default function ScoringPage() {
         </div>
       </main>
 
-      <footer className="border-t border-border/40 px-6 py-6 text-center text-sm text-muted-foreground">
-        Citable — Built for the AI search era
-      </footer>
+      <Footer />
     </div>
   )
 }
