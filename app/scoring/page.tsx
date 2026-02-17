@@ -18,9 +18,9 @@ import {
 } from "lucide-react"
 
 export const metadata: Metadata = {
-  title: "How GEO Score is Calculated — GEO Score",
+  title: "How Citable Score is Calculated — Citable",
   description:
-    "Learn how GEO Score measures your website's readiness for AI-generated search results across 10 key factors.",
+    "Learn how Citable measures your website's readiness for AI-generated search results across 10 key factors.",
 }
 
 const factors = [
@@ -178,9 +178,9 @@ export default function ScoringPage() {
         {/* Header */}
         <div className="mb-12 flex flex-col gap-3">
           <Badge variant="outline" className="w-fit">Methodology</Badge>
-          <h1 className="text-4xl font-bold tracking-tight">How GEO Score is calculated</h1>
+          <h1 className="text-4xl font-bold tracking-tight">How your Citable score is calculated</h1>
           <p className="max-w-2xl text-lg text-muted-foreground">
-            GEO Score measures how well your website is structured for AI-generated search results.
+            Citable measures how well your website is structured for AI-generated search results.
             Each of the 10 factors below evaluates a specific signal that AI systems like ChatGPT,
             Perplexity, and Google AI Overviews use when deciding whether to surface your content.
           </p>
@@ -293,7 +293,7 @@ export default function ScoringPage() {
       </main>
 
       <footer className="border-t border-border/40 px-6 py-6 text-center text-sm text-muted-foreground">
-        GEO Score — Built for the AI search era
+        Citable — Built for the AI search era
       </footer>
     </div>
   )

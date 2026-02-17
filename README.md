@@ -1,4 +1,4 @@
-# GEO Score
+# Citable
 
 Analyze how well your website is optimized for AI-powered search engines like ChatGPT, Perplexity, and Google AI Overviews.
 
@@ -8,14 +8,14 @@ Analyze how well your website is optimized for AI-powered search engines like Ch
 
 ## Why did I build this?
 
-I built GEO Score to help website owners understand how their content is being interpreted by AI search engines and identify opportunities to improve. As AI-generated answers become more prevalent, optimizing for these platforms is crucial to maintain visibility and traffic.
+I built Citable to help website owners understand how their content is being interpreted by AI search engines and identify opportunities to improve. As AI-generated answers become more prevalent, optimizing for these platforms is crucial to maintain visibility and traffic.
 
 Also, there are some really interesting technical challenges around scraping, content analysis, and scoring algorithms that I wanted to explore.
 
 ## How it works
 
 1. Enter a URL
-2. GEO Score scrapes the homepage and up to 9 internal pages
+2. Citable scrapes the homepage and up to 9 internal pages
 3. Each page is scored across 10 factors (out of 100)
 4. Results are saved so you can track improvements over time
 
