@@ -1,9 +1,11 @@
 import { Skeleton } from "@/components/ui/skeleton"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { ScrollToTop } from "@/components/ScrollToTop"
 
 export default function ResultsLoading() {
   return (
     <div className="flex min-h-screen flex-col">
+      <ScrollToTop />
       <main className="mx-auto w-full max-w-4xl px-6 py-10">
         {/* URL + meta */}
         <div className="mb-8 flex flex-col items-center gap-4 text-center">
