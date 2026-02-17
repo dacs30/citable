@@ -4,6 +4,8 @@ import { DomainRankingsTable } from "@/components/DomainRankingsTable"
 import { Badge } from "@/components/ui/badge"
 import { Footer } from "@/components/Footer"
 
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "Domain Rankings — Citable",
   description:
