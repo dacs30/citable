@@ -1,4 +1,5 @@
 import { NextResponse, after } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createServerClient } from '@/lib/supabase-server'
 import { runAnalysis } from '@/lib/analyze'
 import { validateUrlForScraping } from '@/lib/url-validator'
@@ -98,6 +99,7 @@ export async function POST(request: Request) {
           runAnalysis(data.id, normalizedUrl, scraperType, firecrawl_api_key),
           timeout,
         ])
+        revalidatePath('/rankings')
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Unknown error'
         console.error(`Analysis ${data.id} failed:`, message)
