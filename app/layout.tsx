@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GEO Score — Generative Engine Optimization Analyzer",
+  title: "Citable — Generative Engine Optimization Analyzer",
   description:
     "Analyze how well your website is optimized for AI search engines like ChatGPT, Perplexity, and Google AI Overviews.",
 };

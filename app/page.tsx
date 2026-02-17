@@ -14,7 +14,7 @@ export default function Home() {
             Is your site AI-search ready?
           </h1>
           <p className="max-w-lg text-lg text-foreground">
-            GEO Score analyzes how well your website ranks in AI-generated
+            Citable analyzes how well your website ranks in AI-generated
             answers from ChatGPT, Perplexity, and Google AI Overviews.
           </p>
           <UrlForm />
@@ -46,7 +46,7 @@ export default function Home() {
             <Step
               icon={<BarChart3 className="size-6" />}
               step={3}
-              title="Get your GEO Score"
+              title="Get your score"
               description="With a detailed breakdown"
             />
           </div>
@@ -55,7 +55,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t border-border/40 px-6 py-6 text-center text-sm text-muted-foreground">
-        GEO Score &mdash; Built for the AI search era
+        Citable &mdash; Built for the AI search era
         <br />
           &copy; {new Date().getFullYear()} Danilo Correia. All rights reserved.
       </footer>

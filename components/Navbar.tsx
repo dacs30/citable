@@ -25,14 +25,14 @@ export function Navbar() {
     <nav className="flex items-center justify-between sticky top-0 z-50 border-b border-border/40 bg-background/60 px-6 py-4 backdrop-blur-md">
       {/* Logo */}
       {isHome && (
-        <span className="text-lg font-bold tracking-tight">GEO Score</span>
+        <span className="text-lg font-bold tracking-tight">Citable</span>
       )}
       {isScoring && (
         <Link
           href="/"
           className="text-lg font-bold tracking-tight hover:opacity-80 transition-opacity"
         >
-          GEO Score
+          Citable
         </Link>
       )}
       {isResults && (
@@ -41,7 +41,7 @@ export function Navbar() {
           className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="size-4" />
-          <span className="text-lg font-bold tracking-tight text-foreground">GEO Score</span>
+          <span className="text-lg font-bold tracking-tight text-foreground">Citable</span>
         </Link>
       )}
 

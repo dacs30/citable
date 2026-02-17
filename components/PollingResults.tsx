@@ -49,7 +49,7 @@ export function PollingResults({
         <p className="mt-2 text-sm text-muted-foreground">
           {isPending
             ? "Your analysis will begin shortly..."
-            : "Scraping pages and computing GEO scores..."}
+            : "Scraping pages and computing scores..."}
         </p>
         <p className="mt-1 text-xs text-muted-foreground">{data.url}</p>
       </div>
