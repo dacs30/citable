@@ -1,9 +1,11 @@
 "use client"
 
+import { useRef } from "react"
 import Link from "next/link"
 import { Trophy, Medal, Award, ExternalLink } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { ScoreGauge } from "@/components/ScoreGauge"
+import { useVirtualizer } from "@tanstack/react-virtual"
 
 interface DomainRanking {
   id: string
@@ -58,6 +60,15 @@ export function DomainRankingsTable({
 }: {
   rankings: DomainRanking[]
 }) {
+  const parentRef = useRef<HTMLDivElement>(null)
+
+  const rowVirtualizer = useVirtualizer({
+    count: rankings.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 56,
+    overscan: 5,
+  })
+
   if (rankings.length === 0) {
     return (
       <Card className="border-border/50 bg-card/50">
@@ -120,54 +131,75 @@ export function DomainRankingsTable({
             <span className="w-20 text-center">Score</span>
             <span className="w-28 text-right">Last tested</span>
           </div>
+        </div>
 
-          {rankings.map((entry, i) => {
-            const rank = i + 1
-            return (
-              <Link
-                key={entry.id}
-                href={`/${entry.id}`}
-                className="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-muted/20 group"
-              >
-                {/* Rank */}
-                <div className="w-10 flex justify-center">
-                  <RankBadge rank={rank} />
-                </div>
-
-                {/* Domain */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate group-hover:underline">
-                    {entry.domain}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate sm:hidden">
-                    {formatDate(entry.created_at)}
-                  </p>
-                </div>
-
-                {/* Score */}
-                <div className="w-20 flex justify-center">
-                  <span
-                    className={`text-sm font-bold tabular-nums ${getScoreColor(
-                      entry.overall_score
-                    )}`}
+        {/* Virtualized list */}
+        <div
+          ref={parentRef}
+          className="overflow-y-auto max-h-[600px]"
+        >
+          <div
+            style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: "relative" }}
+          >
+            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+              const entry = rankings[virtualRow.index]
+              const rank = virtualRow.index + 1
+              return (
+                <div
+                  key={entry.id}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                >
+                  <Link
+                    href={`/${entry.id}`}
+                    className={`flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-muted/20 group border-t ${virtualRow.index === 0 ? "border-transparent" : "border-border/40"}`}
                   >
-                    {entry.overall_score}
-                    <span className="text-xs font-normal text-muted-foreground">
-                      /100
-                    </span>
-                  </span>
-                </div>
+                    {/* Rank */}
+                    <div className="w-10 flex justify-center">
+                      <RankBadge rank={rank} />
+                    </div>
 
-                {/* Date */}
-                <div className="hidden w-28 text-right sm:flex items-center justify-end gap-1.5">
-                  <span className="text-xs text-muted-foreground">
-                    {formatDate(entry.created_at)}
-                  </span>
-                  <ExternalLink className="size-3 text-muted-foreground/50" />
+                    {/* Domain */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate group-hover:underline">
+                        {entry.domain}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate sm:hidden">
+                        {formatDate(entry.created_at)}
+                      </p>
+                    </div>
+
+                    {/* Score */}
+                    <div className="w-20 flex justify-center">
+                      <span
+                        className={`text-sm font-bold tabular-nums ${getScoreColor(
+                          entry.overall_score
+                        )}`}
+                      >
+                        {entry.overall_score}
+                        <span className="text-xs font-normal text-muted-foreground">
+                          /100
+                        </span>
+                      </span>
+                    </div>
+
+                    {/* Date */}
+                    <div className="hidden w-28 text-right sm:flex items-center justify-end gap-1.5">
+                      <span className="text-xs text-muted-foreground">
+                        {formatDate(entry.created_at)}
+                      </span>
+                      <ExternalLink className="size-3 text-muted-foreground/50" />
+                    </div>
+                  </Link>
                 </div>
-              </Link>
-            )
-          })}
+              )
+            })}
+          </div>
         </div>
       </Card>
     </div>
