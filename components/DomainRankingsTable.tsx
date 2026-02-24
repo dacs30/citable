@@ -1,8 +1,10 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
-import { Trophy, Medal, Award, ExternalLink } from "lucide-react"
+import { Trophy, Medal, Award, ExternalLink, Search, X } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { ScoreGauge } from "@/components/ScoreGauge"
 
 interface DomainRanking {
@@ -58,6 +60,14 @@ export function DomainRankingsTable({
 }: {
   rankings: DomainRanking[]
 }) {
+  const [query, setQuery] = useState("")
+
+  const filtered = query.trim()
+    ? rankings.filter((r) =>
+        r.domain.toLowerCase().includes(query.trim().toLowerCase())
+      )
+    : rankings
+
   if (rankings.length === 0) {
     return (
       <Card className="border-border/50 bg-card/50">
@@ -82,8 +92,28 @@ export function DomainRankingsTable({
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Top 3 podium */}
-      {rankings.length >= 3 && (
+      {/* Search bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search domains…"
+          className="pl-9 pr-9 h-10"
+        />
+        {query && (
+          <button
+            onClick={() => setQuery("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Clear search"
+          >
+            <X className="size-4" />
+          </button>
+        )}
+      </div>
+
+      {/* Top 3 podium — only shown when not searching */}
+      {!query && rankings.length >= 3 && (
         <div className="mb-6 grid gap-4 sm:grid-cols-3">
           {rankings.slice(0, 3).map((entry, i) => (
             <Link key={entry.id} href={`/${entry.id}`} className="group">
@@ -121,53 +151,61 @@ export function DomainRankingsTable({
             <span className="w-28 text-right">Last tested</span>
           </div>
 
-          {rankings.map((entry, i) => {
-            const rank = i + 1
-            return (
-              <Link
-                key={entry.id}
-                href={`/${entry.id}`}
-                className="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-muted/20 group"
-              >
-                {/* Rank */}
-                <div className="w-10 flex justify-center">
-                  <RankBadge rank={rank} />
-                </div>
+          {filtered.length === 0 ? (
+            <div className="flex flex-col items-center gap-2 py-12 text-center">
+              <Search className="size-8 text-muted-foreground/40" />
+              <p className="text-sm font-medium">No results for &ldquo;{query}&rdquo;</p>
+              <p className="text-xs text-muted-foreground">Try a different domain name.</p>
+            </div>
+          ) : (
+            filtered.map((entry) => {
+              const rank = rankings.indexOf(entry) + 1
+              return (
+                <Link
+                  key={entry.id}
+                  href={`/${entry.id}`}
+                  className="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-muted/20 group"
+                >
+                  {/* Rank */}
+                  <div className="w-10 flex justify-center">
+                    <RankBadge rank={rank} />
+                  </div>
 
-                {/* Domain */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate group-hover:underline">
-                    {entry.domain}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate sm:hidden">
-                    {formatDate(entry.created_at)}
-                  </p>
-                </div>
+                  {/* Domain */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate group-hover:underline">
+                      {entry.domain}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate sm:hidden">
+                      {formatDate(entry.created_at)}
+                    </p>
+                  </div>
 
-                {/* Score */}
-                <div className="w-20 flex justify-center">
-                  <span
-                    className={`text-sm font-bold tabular-nums ${getScoreColor(
-                      entry.overall_score
-                    )}`}
-                  >
-                    {entry.overall_score}
-                    <span className="text-xs font-normal text-muted-foreground">
-                      /100
+                  {/* Score */}
+                  <div className="w-20 flex justify-center">
+                    <span
+                      className={`text-sm font-bold tabular-nums ${getScoreColor(
+                        entry.overall_score
+                      )}`}
+                    >
+                      {entry.overall_score}
+                      <span className="text-xs font-normal text-muted-foreground">
+                        /100
+                      </span>
                     </span>
-                  </span>
-                </div>
+                  </div>
 
-                {/* Date */}
-                <div className="hidden w-28 text-right sm:flex items-center justify-end gap-1.5">
-                  <span className="text-xs text-muted-foreground">
-                    {formatDate(entry.created_at)}
-                  </span>
-                  <ExternalLink className="size-3 text-muted-foreground/50" />
-                </div>
-              </Link>
-            )
-          })}
+                  {/* Date */}
+                  <div className="hidden w-28 text-right sm:flex items-center justify-end gap-1.5">
+                    <span className="text-xs text-muted-foreground">
+                      {formatDate(entry.created_at)}
+                    </span>
+                    <ExternalLink className="size-3 text-muted-foreground/50" />
+                  </div>
+                </Link>
+              )
+            })
+          )}
         </div>
       </Card>
     </div>
