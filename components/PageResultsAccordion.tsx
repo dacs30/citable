@@ -7,6 +7,11 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { Badge } from "@/components/ui/badge"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { FactorBreakdown } from "@/components/FactorBreakdown"
 import type { PageScore } from "@/types"
 
@@ -38,10 +43,17 @@ export function PageResultsAccordion({ pages }: { pages: PageScore[] }) {
     <Accordion type="single" collapsible className="w-full">
       {pages.map((page) => (
         <AccordionItem key={page.id} value={page.id}>
-          <AccordionTrigger className="gap-3">
-            <span className="flex-1 truncate text-left font-mono text-xs">
-              {shortenUrl(page.url)}
-            </span>
+          <AccordionTrigger className="gap-3 max-w-full">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="min-w-0 flex-1 truncate text-left font-mono text-xs">
+                  {shortenUrl(page.url)}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <span className="font-mono">{page.url}</span>
+              </TooltipContent>
+            </Tooltip>
             <Badge variant={scoreBadgeVariant(page.score)}>
               {page.score ?? "N/A"}
             </Badge>
