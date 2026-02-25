@@ -50,12 +50,13 @@ export async function POST(request: Request) {
     }
     const normalizedUrl = urlValidation.normalizedUrl!
 
-    // Validate scraper type
+    // Validate scraper type — firecrawl requires a user-supplied API key
     const scraperType = scraper_type === 'firecrawl' ? 'firecrawl' : 'playwright'
+    const firecrawlApiKey = firecrawl_api_key
 
-    if (scraperType === 'firecrawl' && !firecrawl_api_key) {
+    if (scraperType === 'firecrawl' && !firecrawlApiKey) {
       return NextResponse.json(
-        { error: 'Firecrawl API key is required when using firecrawl scraper' },
+        { error: 'A Firecrawl API key is required to use the Firecrawl scraper' },
         { status: 400 }
       )
     }
@@ -96,16 +97,17 @@ export async function POST(request: Request) {
           setTimeout(() => reject(new Error('Analysis timed out after 55 seconds')), TIMEOUT_MS)
         )
         await Promise.race([
-          runAnalysis(data.id, normalizedUrl, scraperType, firecrawl_api_key),
+          runAnalysis(data.id, normalizedUrl, scraperType, firecrawlApiKey),
           timeout,
         ])
         revalidatePath('/rankings')
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Unknown error'
         console.error(`Analysis ${data.id} failed:`, message)
+        // Store generic error in DB to avoid leaking internal details to clients
         await supabaseForTimeout
           .from('analyses')
-          .update({ status: 'failed', error_message: message })
+          .update({ status: 'failed', error_message: 'Analysis failed' })
           .eq('id', data.id)
       }
     })

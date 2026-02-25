@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd:*)",
+      "Bash(head:*)",
+      "Bash(cd /c/Users/dacs2/git/geo-score && npx tsc --noEmit 2>&1)",
+      "WebSearch"
+    ]
+  }
+}
