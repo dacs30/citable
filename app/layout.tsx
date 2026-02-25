@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppBackground } from "@/components/AppBackground";
 import { Navbar } from "@/components/Navbar";
 import "./globals.css";
@@ -37,9 +38,11 @@ export default function RootLayout({
         {/* Navbar sits above the content stacking context so nothing can paint over it */}
         <Navbar />
         {/* Content layer sits above the fixed background */}
-        <div style={{ position: "relative", zIndex: 1 }}>
-          {children}
-        </div>
+        <TooltipProvider>
+          <div style={{ position: "relative", zIndex: 1 }}>
+            {children}
+          </div>
+        </TooltipProvider>
         <Toaster />
         <SpeedInsights />
         <Analytics />
