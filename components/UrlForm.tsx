@@ -124,13 +124,11 @@ export function UrlForm() {
           </div>
 
           {/* Firecrawl API Key (animated) */}
-          <div
-            className={`grid transition-all duration-300 ease-in-out ${
-              scraperType === "firecrawl"
-                ? "grid-rows-[1fr] opacity-100"
-                : "grid-rows-[0fr] opacity-0"
-            }`}
-          >
+          <div className={`grid transition-all duration-300 ease-in-out ${
+            scraperType === "firecrawl"
+              ? "grid-rows-[1fr] opacity-100"
+              : "grid-rows-[0fr] opacity-0"
+          }`}>
             <div className="overflow-hidden">
               <div className="flex flex-col gap-2 pb-1">
                 <Label htmlFor="firecrawl-key">Firecrawl API Key</Label>

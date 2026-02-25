@@ -74,10 +74,13 @@ function isBlockedIPv6(ip: string): boolean {
   return false
 }
 
+const DNS_TIMEOUT_MS = 5_000
+
 export interface UrlValidationResult {
   valid: boolean
   error?: string
   normalizedUrl?: string
+  resolvedAddress?: string
 }
 
 export async function validateUrlForScraping(rawUrl: string): Promise<UrlValidationResult> {
@@ -125,18 +128,29 @@ export async function validateUrlForScraping(rawUrl: string): Promise<UrlValidat
     return { valid: true, normalizedUrl: urlStr }
   }
 
-  // Resolve hostname to IP and validate the resolved address
+  // Resolve hostname to IP and validate the resolved address (with timeout)
   try {
-    const { address, family } = await lookup(hostname)
+    const dnsTimeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('DNS lookup timed out')), DNS_TIMEOUT_MS)
+    )
+    const { address, family } = await Promise.race([lookup(hostname), dnsTimeout])
     if (family === 4 && isBlockedIPv4(address)) {
       return { valid: false, error: 'This URL resolves to a restricted IP address' }
     }
     if (family === 6 && isBlockedIPv6(address)) {
       return { valid: false, error: 'This URL resolves to a restricted IP address' }
     }
+    return { valid: true, normalizedUrl: urlStr, resolvedAddress: address }
   } catch {
     return { valid: false, error: 'Could not resolve hostname' }
   }
+}
 
-  return { valid: true, normalizedUrl: urlStr }
+/**
+ * Quick SSRF check for a URL that has already been normalized.
+ * Used to validate sub-links discovered during crawling.
+ */
+export async function isUrlSafeForScraping(url: string): Promise<boolean> {
+  const result = await validateUrlForScraping(url)
+  return result.valid
 }

@@ -1,9 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase-server'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 const PAGE_SIZE = 50
 
+const LIMIT = 1000
+
 export async function GET(request: NextRequest) {
+  // Rate limiting
+  const ip =
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+    request.headers.get('x-real-ip') ??
+    'unknown'
+  const rateLimitResult = checkRateLimit(ip)
+  if (!rateLimitResult.allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(rateLimitResult.retryAfterSeconds) },
+      }
+    )
+  }
+
   const supabase = createServerClient()
 
   const { searchParams } = request.nextUrl
@@ -16,6 +35,7 @@ export async function GET(request: NextRequest) {
     .eq('status', 'completed')
     .not('overall_score', 'is', null)
     .order('overall_score', { ascending: false })
+    .limit(LIMIT)
 
   if (error) {
     return NextResponse.json({ error: 'Failed to fetch rankings' }, { status: 500 })

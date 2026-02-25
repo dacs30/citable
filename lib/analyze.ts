@@ -3,7 +3,14 @@ import { createBrowserSession } from '@/lib/scrapers/playwright-scraper'
 import { scrapeWithFirecrawl } from '@/lib/scrapers/firecrawl-scraper'
 import { discoverSublinks } from '@/lib/link-explorer'
 import { scorePageContent } from '@/lib/geo-scorer'
+import { isUrlSafeForScraping } from '@/lib/url-validator'
 import type { ScrapeResult } from '@/lib/scrapers/playwright-scraper'
+
+/** Filter out sub-links that target private/restricted IPs (SSRF protection). */
+async function filterSafeUrls(urls: string[]): Promise<string[]> {
+  const checks = await Promise.all(urls.map(async (u) => ({ url: u, safe: await isUrlSafeForScraping(u) })))
+  return checks.filter((c) => c.safe).map((c) => c.url)
+}
 
 async function firecrawlBatch(
   urls: string[],
@@ -49,15 +56,16 @@ export async function runAnalysis(
             .from('analyses')
             .update({
               status: 'failed',
-              error_message: homepage.error || 'Failed to scrape homepage',
+              error_message: 'Failed to scrape homepage',
             })
             .eq('id', analysisId)
           return
         }
 
-        // 3. Discover sublinks, scrape them with the same browser
+        // 3. Discover sublinks, SSRF-validate them, scrape with the same browser
         const allLinks = await discoverSublinks(url, homepage.html)
-        const sublinks = allLinks.filter((u) => u !== url && u !== homepage.url)
+        const rawSublinks = allLinks.filter((u) => u !== url && u !== homepage.url)
+        const sublinks = await filterSafeUrls(rawSublinks)
         const subScraped = await session.scrapeAll(sublinks)
         allScraped = [homepage, ...subScraped]
       } finally {
@@ -77,9 +85,10 @@ export async function runAnalysis(
         return
       }
 
-      // 3. Discover sublinks and scrape in batches
+      // 3. Discover sublinks, SSRF-validate them, scrape in batches
       const allLinks = await discoverSublinks(url, homepage.html)
-      const sublinks = allLinks.filter((u) => u !== url && u !== homepage.url)
+      const rawSublinks = allLinks.filter((u) => u !== url && u !== homepage.url)
+      const sublinks = await filterSafeUrls(rawSublinks)
       const subScraped = await firecrawlBatch(sublinks, firecrawlApiKey!)
       allScraped = [homepage, ...subScraped]
     }
@@ -123,9 +132,10 @@ export async function runAnalysis(
       .eq('id', analysisId)
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
+    console.error(`Analysis ${analysisId} failed:`, message)
     await supabase
       .from('analyses')
-      .update({ status: 'failed', error_message: message })
+      .update({ status: 'failed', error_message: 'Analysis failed' })
       .eq('id', analysisId)
   }
 }
