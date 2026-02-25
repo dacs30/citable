@@ -11,6 +11,8 @@ export const metadata: Metadata = {
     "See how domains rank by their GEO optimization score. Compare your site against others tested on Citable.",
 }
 
+const PAGE_SIZE = 50
+
 interface DomainRanking {
   id: string
   domain: string
@@ -49,10 +51,16 @@ async function getRankings(query?: string): Promise<DomainRanking[]> {
 export default async function RankingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>
+  searchParams: Promise<{ q?: string; page?: string }>
 }) {
-  const { q } = await searchParams
-  const rankings = await getRankings(q)
+  const { q, page } = await searchParams
+  const allRankings = await getRankings(q)
+
+  const currentPage = Math.max(1, parseInt(page ?? "1", 10) || 1)
+  const totalPages = Math.max(1, Math.ceil(allRankings.length / PAGE_SIZE))
+  const safePage = Math.min(currentPage, totalPages)
+  const startIndex = (safePage - 1) * PAGE_SIZE
+  const rankings = allRankings.slice(startIndex, startIndex + PAGE_SIZE)
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -73,7 +81,13 @@ export default async function RankingsPage({
 
         <div className="flex flex-col gap-4">
           <RankingsSearch defaultValue={q} />
-          <DomainRankingsTable rankings={rankings} query={q} />
+          <DomainRankingsTable
+            rankings={rankings}
+            query={q}
+            currentPage={safePage}
+            totalPages={totalPages}
+            totalItems={allRankings.length}
+          />
         </div>
       </main>
 

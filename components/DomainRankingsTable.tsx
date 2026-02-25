@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Trophy, Medal, Award, ExternalLink, Search } from "lucide-react"
+import { Trophy, Medal, Award, ExternalLink, Search, ChevronLeft, ChevronRight } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { ScoreGauge } from "@/components/ScoreGauge"
 
@@ -37,6 +37,31 @@ function RankBadge({ rank }: { rank: number }) {
   )
 }
 
+function buildPageHref(page: number, query?: string) {
+  const params = new URLSearchParams()
+  if (query) params.set("q", query)
+  if (page > 1) params.set("page", String(page))
+  const qs = params.toString()
+  return `/rankings${qs ? `?${qs}` : ""}`
+}
+
+function getVisiblePages(current: number, total: number): (number | "ellipsis")[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+
+  const pages: (number | "ellipsis")[] = [1]
+
+  if (current > 3) pages.push("ellipsis")
+
+  const start = Math.max(2, current - 1)
+  const end = Math.min(total - 1, current + 1)
+  for (let i = start; i <= end; i++) pages.push(i)
+
+  if (current < total - 2) pages.push("ellipsis")
+
+  pages.push(total)
+  return pages
+}
+
 function getScoreColor(score: number) {
   if (score >= 80) return "text-green-500"
   if (score >= 50) return "text-yellow-500"
@@ -54,10 +79,17 @@ function formatDate(dateStr: string) {
 export function DomainRankingsTable({
   rankings,
   query,
+  currentPage = 1,
+  totalPages = 1,
+  totalItems = 0,
 }: {
   rankings: DomainRanking[]
   query?: string
+  currentPage?: number
+  totalPages?: number
+  totalItems?: number
 }) {
+  const rankOffset = (currentPage - 1) * 50
   if (rankings.length === 0 && !query) {
     return (
       <Card className="border-border/50 bg-card/50">
@@ -82,8 +114,8 @@ export function DomainRankingsTable({
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Top 3 podium — hidden while searching */}
-      {!query && rankings.length >= 3 && (
+      {/* Top 3 podium — only on first page, hidden while searching */}
+      {!query && currentPage === 1 && rankings.length >= 3 && (
         <div className="mb-6 grid gap-4 sm:grid-cols-3">
           {rankings.slice(0, 3).map((entry, i) => (
             <Link key={entry.id} href={`/${entry.id}`} className="group">
@@ -136,7 +168,7 @@ export function DomainRankingsTable({
               >
                 {/* Rank */}
                 <div className="w-10 flex justify-center">
-                  <RankBadge rank={i + 1} />
+                  <RankBadge rank={rankOffset + i + 1} />
                 </div>
 
                 {/* Domain */}
@@ -175,6 +207,72 @@ export function DomainRankingsTable({
           )}
         </div>
       </Card>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-2">
+          <p className="text-xs text-muted-foreground">
+            Showing {rankOffset + 1}–{rankOffset + rankings.length} of{" "}
+            {totalItems} domains
+          </p>
+
+          <div className="flex items-center gap-1">
+            {/* Previous */}
+            {currentPage > 1 ? (
+              <Link
+                href={buildPageHref(currentPage - 1, query)}
+                className="inline-flex size-8 items-center justify-center rounded-md text-sm text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground"
+                aria-label="Previous page"
+              >
+                <ChevronLeft className="size-4" />
+              </Link>
+            ) : (
+              <span className="inline-flex size-8 items-center justify-center rounded-md text-sm text-muted-foreground/40">
+                <ChevronLeft className="size-4" />
+              </span>
+            )}
+
+            {/* Page numbers */}
+            {getVisiblePages(currentPage, totalPages).map((p, i) =>
+              p === "ellipsis" ? (
+                <span
+                  key={`ellipsis-${i}`}
+                  className="inline-flex size-8 items-center justify-center text-xs text-muted-foreground"
+                >
+                  &hellip;
+                </span>
+              ) : (
+                <Link
+                  key={p}
+                  href={buildPageHref(p, query)}
+                  className={`inline-flex size-8 items-center justify-center rounded-md text-sm font-medium transition-colors ${
+                    p === currentPage
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+                  }`}
+                >
+                  {p}
+                </Link>
+              )
+            )}
+
+            {/* Next */}
+            {currentPage < totalPages ? (
+              <Link
+                href={buildPageHref(currentPage + 1, query)}
+                className="inline-flex size-8 items-center justify-center rounded-md text-sm text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground"
+                aria-label="Next page"
+              >
+                <ChevronRight className="size-4" />
+              </Link>
+            ) : (
+              <span className="inline-flex size-8 items-center justify-center rounded-md text-sm text-muted-foreground/40">
+                <ChevronRight className="size-4" />
+              </span>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

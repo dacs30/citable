@@ -15,7 +15,8 @@ export function RankingsSearch({ defaultValue = "" }: { defaultValue?: string })
       startTransition(() => {
         const params = new URLSearchParams()
         if (value.trim()) params.set("q", value.trim())
-        router.replace(`/rankings${value.trim() ? `?${params}` : ""}`)
+        // Always reset to page 1 when search changes
+        router.replace(`/rankings${params.size ? `?${params}` : ""}`)
       })
     }, 300)
     return () => clearTimeout(timer)
