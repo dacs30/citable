@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { createServerClient } from "@/lib/supabase-server"
 import { DomainRankingsTable } from "@/components/DomainRankingsTable"
+import { RankingsSearch } from "@/components/RankingsSearch"
 import { Badge } from "@/components/ui/badge"
 import { Footer } from "@/components/Footer"
 
@@ -18,15 +19,21 @@ interface DomainRanking {
   created_at: string
 }
 
-async function getRankings(): Promise<DomainRanking[]> {
+async function getRankings(query?: string): Promise<DomainRanking[]> {
   const supabase = createServerClient()
 
-  const { data, error } = await supabase
+  let q = supabase
     .from("analyses")
     .select("id, domain, url, overall_score, created_at")
     .eq("status", "completed")
     .not("overall_score", "is", null)
     .order("overall_score", { ascending: false })
+
+  if (query) {
+    q = q.ilike("domain", `%${query}%`)
+  }
+
+  const { data, error } = await q
 
   if (error || !data) return []
 
@@ -39,8 +46,13 @@ async function getRankings(): Promise<DomainRanking[]> {
   }) as DomainRanking[]
 }
 
-export default async function RankingsPage() {
-  const rankings = await getRankings()
+export default async function RankingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>
+}) {
+  const { q } = await searchParams
+  const rankings = await getRankings(q)
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -59,7 +71,10 @@ export default async function RankingsPage() {
           </p>
         </div>
 
-        <DomainRankingsTable rankings={rankings} />
+        <div className="flex flex-col gap-4">
+          <RankingsSearch defaultValue={q} />
+          <DomainRankingsTable rankings={rankings} query={q} />
+        </div>
       </main>
 
       <Footer />

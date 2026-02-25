@@ -1,7 +1,5 @@
-"use client"
-
 import Link from "next/link"
-import { Trophy, Medal, Award, ExternalLink } from "lucide-react"
+import { Trophy, Medal, Award, ExternalLink, Search } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { ScoreGauge } from "@/components/ScoreGauge"
 
@@ -55,10 +53,12 @@ function formatDate(dateStr: string) {
 
 export function DomainRankingsTable({
   rankings,
+  query,
 }: {
   rankings: DomainRanking[]
+  query?: string
 }) {
-  if (rankings.length === 0) {
+  if (rankings.length === 0 && !query) {
     return (
       <Card className="border-border/50 bg-card/50">
         <CardContent className="flex flex-col items-center gap-4 py-16">
@@ -82,8 +82,8 @@ export function DomainRankingsTable({
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Top 3 podium */}
-      {rankings.length >= 3 && (
+      {/* Top 3 podium — hidden while searching */}
+      {!query && rankings.length >= 3 && (
         <div className="mb-6 grid gap-4 sm:grid-cols-3">
           {rankings.slice(0, 3).map((entry, i) => (
             <Link key={entry.id} href={`/${entry.id}`} className="group">
@@ -121,9 +121,14 @@ export function DomainRankingsTable({
             <span className="w-28 text-right">Last tested</span>
           </div>
 
-          {rankings.map((entry, i) => {
-            const rank = i + 1
-            return (
+          {rankings.length === 0 ? (
+            <div className="flex flex-col items-center gap-2 py-12 text-center">
+              <Search className="size-8 text-muted-foreground/40" />
+              <p className="text-sm font-medium">No results for &ldquo;{query}&rdquo;</p>
+              <p className="text-xs text-muted-foreground">Try a different domain name.</p>
+            </div>
+          ) : (
+            rankings.map((entry, i) => (
               <Link
                 key={entry.id}
                 href={`/${entry.id}`}
@@ -131,7 +136,7 @@ export function DomainRankingsTable({
               >
                 {/* Rank */}
                 <div className="w-10 flex justify-center">
-                  <RankBadge rank={rank} />
+                  <RankBadge rank={i + 1} />
                 </div>
 
                 {/* Domain */}
@@ -166,8 +171,8 @@ export function DomainRankingsTable({
                   <ExternalLink className="size-3 text-muted-foreground/50" />
                 </div>
               </Link>
-            )
-          })}
+            ))
+          )}
         </div>
       </Card>
     </div>
