@@ -41,9 +41,9 @@ export function FactorBreakdown({
               className="flex w-full items-center gap-3 text-left"
             >
               <div className="flex-1 space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium">{factor.label}</span>
-                  <span className={`font-mono text-xs ${colors.text}`}>
+                <div className="flex items-center justify-between gap-2 text-sm">
+                  <span className="font-medium min-w-0 truncate">{factor.label}</span>
+                  <span className={`font-mono text-xs shrink-0 ${colors.text}`}>
                     {factor.score}/{factor.maxScore}
                   </span>
                 </div>
