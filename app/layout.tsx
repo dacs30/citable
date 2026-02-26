@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppBackground } from "@/components/AppBackground";
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -39,8 +40,9 @@ export default function RootLayout({
         <Navbar />
         {/* Content layer sits above the fixed background */}
         <TooltipProvider>
-          <div style={{ position: "relative", zIndex: 1 }}>
+          <div style={{ position: "relative", zIndex: 1 }} className="flex flex-col min-h-screen">
             {children}
+            <Footer />
           </div>
         </TooltipProvider>
         <Toaster />
