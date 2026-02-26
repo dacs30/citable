@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { ScoreGauge } from "@/components/ScoreGauge"
-import { Footer } from "@/components/Footer"
 import {
   Code2,
   FileText,
@@ -174,8 +173,7 @@ const gradeTiers = [
 
 export default function ScoringPage() {
   return (
-    <div className="flex min-h-screen flex-col">
-      <main className="mx-auto w-full max-w-4xl px-6 py-16">
+    <main className="mx-auto w-full max-w-4xl px-6 py-16">
         {/* Header */}
         <div className="mb-12 flex flex-col gap-3">
           <Badge variant="outline" className="w-fit">Methodology</Badge>
@@ -291,9 +289,6 @@ export default function ScoringPage() {
             Analyze your website
           </Link>
         </div>
-      </main>
-
-      <Footer />
-    </div>
+    </main>
   )
 }

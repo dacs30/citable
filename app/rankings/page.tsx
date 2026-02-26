@@ -3,7 +3,6 @@ import { createServerClient } from "@/lib/supabase-server"
 import { DomainRankingsTable } from "@/components/DomainRankingsTable"
 import { RankingsSearch } from "@/components/RankingsSearch"
 import { Badge } from "@/components/ui/badge"
-import { Footer } from "@/components/Footer"
 
 export const metadata: Metadata = {
   title: "Domain Rankings — Citable",
@@ -63,8 +62,7 @@ export default async function RankingsPage({
   const rankings = allRankings.slice(startIndex, startIndex + PAGE_SIZE)
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <main className="mx-auto w-full max-w-4xl px-6 py-16">
+    <main className="mx-auto w-full max-w-4xl px-6 py-16">
         {/* Header */}
         <div className="mb-12 flex flex-col gap-3">
           <Badge variant="outline" className="w-fit">
@@ -89,9 +87,6 @@ export default async function RankingsPage({
             totalItems={allRankings.length}
           />
         </div>
-      </main>
-
-      <Footer />
-    </div>
+    </main>
   )
 }

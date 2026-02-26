@@ -1,10 +1,9 @@
 import { UrlForm } from "@/components/UrlForm"
-import { Footer } from "@/components/Footer"
 import { Globe, Search, BarChart3 } from "lucide-react"
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <>
       {/* Hero */}
       <section className="relative flex flex-1 flex-col items-center justify-center px-6 py-20">
         {/* Subtle gradient background */}
@@ -53,9 +52,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      <Footer />
-    </div>
+    </>
   )
 }
 
