@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo, memo } from "react"
 import { ChevronDown, ChevronUp, CheckCircle2, Circle, ArrowUpCircle } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
@@ -13,7 +13,7 @@ function getColor(pct: number) {
   return { bar: "#ef4444", text: "text-red-500", bg: "bg-red-500/10 border-red-500/20" }
 }
 
-export function FactorBreakdown({
+export const FactorBreakdown = memo(function FactorBreakdown({
   breakdown,
 }: {
   breakdown: GeoScoreBreakdown
@@ -77,9 +77,7 @@ export function FactorBreakdown({
                       Scoring rubric
                     </p>
                     <div className="space-y-1.5">
-                      {[...rubric.tiers]
-                        .sort((a, b) => b.pts - a.pts)
-                        .map((tier, i) => {
+                      {[...rubric.tiers].sort((a, b) => b.pts - a.pts).map((tier, i) => {
                           const isAchieved = factor.score >= tier.pts
                           const isCurrentTier = achieved?.pts === tier.pts
 
@@ -145,4 +143,4 @@ export function FactorBreakdown({
       })}
     </div>
   )
-}
+})

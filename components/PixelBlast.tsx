@@ -413,6 +413,19 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
     liquidEffect?: Effect;
   } | null>(null);
   const prevConfigRef = useRef<ReinitConfig | null>(null);
+  // Wire up IntersectionObserver so autoPauseOffscreen actually works
+  useEffect(() => {
+    if (!autoPauseOffscreen) return;
+    const container = containerRef.current;
+    if (!container) return;
+    const io = new IntersectionObserver(
+      ([entry]) => { visibilityRef.current.visible = entry.isIntersecting; },
+      { threshold: 0 }
+    );
+    io.observe(container);
+    return () => io.disconnect();
+  }, [autoPauseOffscreen]);
+
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;

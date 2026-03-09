@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo, memo } from "react"
 import {
   LineChart,
   Line,
@@ -10,13 +11,31 @@ import {
 } from "recharts"
 import type { Analysis } from "@/types"
 
-export function HistoryChart({
+export const HistoryChart = memo(function HistoryChart({
   pastAnalyses,
   currentScore,
 }: {
   pastAnalyses: Analysis[]
   currentScore: number
 }) {
+  const data = useMemo(
+    () =>
+      pastAnalyses
+        .filter((a) => a.overall_score !== null)
+        .sort(
+          (a, b) =>
+            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        )
+        .map((a) => ({
+          date: new Date(a.created_at).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          }),
+          score: a.overall_score,
+        })),
+    [pastAnalyses]
+  )
+
   if (pastAnalyses.length <= 1) {
     return (
       <div className="flex h-48 items-center justify-center rounded-lg border border-dashed border-border">
@@ -26,20 +45,6 @@ export function HistoryChart({
       </div>
     )
   }
-
-  const data = pastAnalyses
-    .filter((a) => a.overall_score !== null)
-    .sort(
-      (a, b) =>
-        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-    )
-    .map((a) => ({
-      date: new Date(a.created_at).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      }),
-      score: a.overall_score,
-    }))
 
   return (
     <div className="h-64 w-full">
@@ -81,4 +86,4 @@ export function HistoryChart({
       </ResponsiveContainer>
     </div>
   )
-}
+})
