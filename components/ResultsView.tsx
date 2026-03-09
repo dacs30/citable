@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -45,7 +46,10 @@ export function ResultsView({
   contentPreviews: ContentPreview[]
 }) {
   const score = analysis.overall_score ?? 0
-  const avgBreakdown = averageBreakdowns(analysis.page_scores)
+  const avgBreakdown = useMemo(
+    () => averageBreakdowns(analysis.page_scores),
+    [analysis.page_scores]
+  )
 
   return (
     <div className="flex min-h-screen flex-col">
