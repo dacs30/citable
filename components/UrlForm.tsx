@@ -105,7 +105,7 @@ export function UrlForm() {
                     Playwright
                   </Label>
                   <span className="text-xs text-muted-foreground">
-                    Free headless browser — may be slower or time out on some sites
+                    No API key needed — runs a real browser to fetch your pages
                   </span>
                 </div>
               </div>
@@ -116,7 +116,7 @@ export function UrlForm() {
                     Firecrawl
                   </Label>
                   <span className="text-xs text-muted-foreground">
-                    Faster and more reliable — requires a paid API key
+                    Faster and more reliable — bring your own Firecrawl API key
                   </span>
                 </div>
               </div>
