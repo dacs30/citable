@@ -41,7 +41,7 @@ export default function Home() {
               icon={<Search className="size-6" />}
               step={2}
               title="Pick your scraper"
-              description="Headless browser or Firecrawl"
+              description="Choose a free built-in browser or your own Firecrawl key"
             />
             <Step
               icon={<BarChart3 className="size-6" />}
