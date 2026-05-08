@@ -67,7 +67,7 @@ export function UrlForm() {
   }
 
   return (
-    <Card className="w-full max-w-xl border-border/50 bg-card/50 backdrop-blur-sm">
+    <Card className="w-full max-w-xl border-border/50 bg-card/50 backdrop-blur-sm transition-shadow duration-300 hover:shadow-[0_0_32px_0px_oklch(0.65_0.22_25_/_20%)]">
       <CardHeader>
         <CardTitle className="text-lg">Analyze your website</CardTitle>
       </CardHeader>
@@ -145,7 +145,12 @@ export function UrlForm() {
           </div>
 
           {/* Submit */}
-          <Button type="submit" size="lg" disabled={loading} className="w-full">
+          <Button
+            type="submit"
+            size="lg"
+            disabled={loading}
+            className="w-full transition-all duration-300 hover:shadow-[0_0_20px_2px_oklch(0.65_0.22_25_/_40%)] hover:scale-[1.02] active:scale-[0.98]"
+          >
             {loading ? (
               <>
                 <Loader2 className="size-4 animate-spin" />

@@ -34,7 +34,7 @@ export function ScoreGauge({ score, size = "md" }: ScoreGaugeProps) {
   const label = getScoreLabel(score)
 
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div className="flex flex-col items-center gap-1 animate-scale-in">
       <svg
         width={config.width}
         height={config.width}

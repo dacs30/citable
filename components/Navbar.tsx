@@ -26,12 +26,12 @@ export function Navbar() {
     <nav className="flex items-center justify-between sticky top-0 z-50 border-b border-border/40 bg-background/60 px-6 py-4 backdrop-blur-md">
       {/* Logo */}
       {isHome && (
-        <span className="text-lg font-bold tracking-tight">Citable</span>
+        <span className="text-lg font-bold tracking-tight text-primary animate-slide-in-right">Citable</span>
       )}
       {(isScoring || isRankings) && (
         <Link
           href="/"
-          className="text-lg font-bold tracking-tight hover:opacity-80 transition-opacity"
+          className="text-lg font-bold tracking-tight text-primary hover:opacity-80 transition-all duration-200 hover:scale-105"
         >
           Citable
         </Link>
@@ -39,10 +39,10 @@ export function Navbar() {
       {isResults && (
         <Link
           href="/"
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-all duration-200 group"
         >
-          <ArrowLeft className="size-4" />
-          <span className="text-lg font-bold tracking-tight text-foreground">Citable</span>
+          <ArrowLeft className="size-4 transition-transform duration-200 group-hover:-translate-x-0.5" />
+          <span className="text-lg font-bold tracking-tight text-primary">Citable</span>
         </Link>
       )}
 

@@ -24,16 +24,17 @@ export const FactorBreakdown = memo(function FactorBreakdown({
 
   return (
     <div className="divide-y divide-border/40">
-      {entries.map(([key, factor]) => {
+      {entries.map(([key, factor], index) => {
         const pct = Math.round((factor.score / factor.maxScore) * 100)
         const colors = getColor(pct)
         const rubric = SCORING_RUBRIC.find((r) => r.key === key)
         const isOpen = expanded === key
         const achieved = rubric ? getAchievedTier(rubric, factor.score) : null
         const next = rubric ? getNextTier(rubric, factor.score) : null
+        const delayClass = `animation-delay-${Math.min(index * 100, 600)}`
 
         return (
-          <div key={key} className="py-4 first:pt-0 last:pb-0">
+          <div key={key} className={`py-4 first:pt-0 last:pb-0 animate-fade-in-up ${delayClass}`}>
             {/* Header row — always visible */}
             <button
               type="button"

@@ -19,7 +19,7 @@ export function AppBackground() {
     >
       <PixelBlast
         variant="circle"
-        color="#6366f1"
+        color="#e11d48"
         pixelSize={5}
         patternScale={2.5}
         patternDensity={1}
